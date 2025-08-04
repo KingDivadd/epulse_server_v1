@@ -22,7 +22,6 @@ import { appointment_tracker } from './controllers/appointment';
 import { update_notification } from './controllers/notification_controller';
 import { apn_call_notification } from './controllers/push_notification';
 import converted_datetime, { readable_date } from './helpers/date_time_elements';
-import passport from './config/passport-config';
 
 dotenv.config();
 
@@ -36,21 +35,6 @@ app.use(express.json());
 app.use(cors(CORS_OPTION));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
-app.use(passport.initialize());
-
-
-
-// // 
-// // OAuth Routes
-// app.get('/api/v1/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
-// app.get('/api/v1/google/callback', passport.authenticate('google', { session: false }), (req, res) => {
-//     res.redirect(`http://localhost:3000/callback?token=${(req.user as any).token}`);
-// });
-
-// app.get('/api/v1/auth/facebook', passport.authenticate('facebook', { scope: ['email'] }));
-// app.get('/api/v1/auth/facebook/callback', passport.authenticate('facebook', { session: false }), (req, res) => {
-//     res.redirect(`http://localhost:3000/callback?token=${(req.user as any).token}`);
-// });
 
 // config webpush.js
 
