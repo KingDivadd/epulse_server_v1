@@ -1,0 +1,8 @@
+# the dotenv
+.env
+
+# Node modules
+node_modules
+
+# dist folder
+dist

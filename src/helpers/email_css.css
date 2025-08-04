@@ -1,0 +1,45 @@
+/* Reusable email styles for ePulse */
+
+.email-container {
+    font-family: 'Montserrat', Arial, sans-serif;
+    margin: 20px auto;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    max-width: 600px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    background-color: #ffffff;
+    text-align: left;
+}
+
+.email-heading {
+    color: #333;
+    text-align: center;
+    margin: 0 0 20px 0;
+    font-size: 24px;
+    font-weight: 700;
+}
+
+.email-paragraph {
+    color: #555;
+    line-height: 1.6;
+    font-size: 16px;
+    margin: 0 0 15px 0;
+}
+
+.email-link {
+    color: #306CE9;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.email-list {
+    padding-left: 20px;
+    margin: 0 0 15px 0;
+}
+
+.email-list-item {
+    margin-bottom: 10px;
+    font-size: 16px;
+    color: #555;
+}

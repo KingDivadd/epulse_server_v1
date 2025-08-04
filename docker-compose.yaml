@@ -1,0 +1,9 @@
+services:
+  api:
+    image: ohealth-telemedicine # Specify your custom Node.js image name and tag
+    build: .
+    command: npm run start
+    ports:
+      - '4000:4000' # Specify the exposed port, we will need this to access the app from local machine
+    env_file:
+      - .env
