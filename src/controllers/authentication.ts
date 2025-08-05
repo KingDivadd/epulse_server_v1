@@ -5,7 +5,7 @@ import converted_datetime from '../helpers/date_time_elements'
 import { redis_auth_store, redis_otp_store, redis_value_update } from '../helpers/redis_funtions'
 import {generate_otp, generate_referral_code} from '../helpers/generated_entities'
 import {send_mail_account_unverified_to_physician, send_mail_account_verified_to_physician} from '../helpers/emails'
-import { CustomRequest } from '../helpers/interface'
+import { CustomRequest, PatientProfileData } from '../helpers/interface'
 import {send_sms_otp} from '../helpers/sms_funtions'
 import { handle_decrypt } from '../helpers/encryption_decryption'
 import { physician_consultation_validation } from '../validations'
@@ -593,36 +593,82 @@ export const logged_in_physician = async(req: CustomRequest, res: Response, next
     }
 }
 
-export const edit_patient_data = async(req: CustomRequest, res: Response)=>{
-    const {date_of_birth, phone_number} = req.body
-    try {
-        const patient_id = req.account_holder.user.patient_id
+// export const edit_patient_data = async(req: CustomRequest, res: Response)=>{
+    
+//     const {first_name, last_name, country, country_code, phone_number, gender, date_of_birth, blood_group, genotype, height, weight} = req.body
 
+//     try {
+//         const patient_id = req.account_holder.user.patient_id
+
+//         const auth_id = req.headers['x-id-key'];
+
+//         const updated_data:PatientProfileData = {}
+
+//         if (first_name) { updated_data.first_name = first_name }
+
+//         if (last_name) { updated_data.last_name = last_name }
+
+//         if (country) { updated_data.country = country }
+
+//         if (phone_number) { updated_data.phone_number = phone_number }
+
+//         if (country_code) { updated_data.coutnry_code = country_code }
+
+//         if (gender) { updated_data.gender = gender }
+
+//         if (date_of_birth) { updated_data.date_of_birth = date_of_birth }
+
+//         if (blood_group) { updated_data.blood_group = blood_group }
+
+//         if (genotype) { updated_data.genotype = genotype }
+
+//         if (height) { updated_data.height = height }
+
+//         if (weight) { updated_data.weight = weight }
+
+//         updated_data.updated_at = converted_datetime(); 
+
+//         const updated_patient_data = await prisma.patient.update({
+//             where: {patient_id},
+//             data: updated_data
+//         })
+
+//         const new_auth_id:any = await redis_value_update(auth_id, updated_patient_data, 60 * 60 * 23);
+
+//         res.setHeader('x-id-key', new_auth_id)
+
+//         return res.status(200).json({ msg: 'Patient profile updated successfully', user: updated_patient_data})
+//     } catch (err:any) {
+//         console.log('Error occured while updating patient data ',err);
+//         return res.status(500).json({msg: 'Error occured while updating patient data ', error: err})
+//     }
+// }
+
+export const edit_patient_data = async (req: CustomRequest, res: Response) => {
+    try {
+        const patient_id = req.account_holder.user.patient_id;
         const auth_id = req.headers['x-id-key'];
 
-        req.body.date_of_birth = converted_datetime(date_of_birth)
+        const updated_data: PatientProfileData = {
+        ...req.body,
+        updated_at: converted_datetime(),
+        };
 
-        req.body.updated_at = converted_datetime(); 
-
-        if (phone_number){
-            req.body.phone_number = String(phone_number)
-        }
-        
         const updated_patient_data = await prisma.patient.update({
-            where: {patient_id},
-            data: req.body
-        })
+            where: { patient_id },
+            data: updated_data,
+        });
 
         const new_auth_id:any = await redis_value_update(auth_id, updated_patient_data, 60 * 60 * 23);
 
-        res.setHeader('x-id-key', new_auth_id)
+        res.setHeader('x-id-key', new_auth_id);
 
-        return res.status(200).json({ msg: 'Patient profile updated successfully', user: updated_patient_data})
-    } catch (err:any) {
-        console.log('Error occured while updating patient data ',err);
-        return res.status(500).json({msg: 'Error occured while updating patient data ', error: err})
+        return res.status(200).json({ msg: 'Patient profile updated successfully', user: updated_patient_data });
+    } catch (err: any) {
+        console.log('Error occurred while updating patient data', err);
+        return res.status(500).json({ msg: 'Error occurred while updating patient data', error: err });
     }
-}
+};
 
 export const edit_physician_data = async(req: CustomRequest, res: Response)=>{
     const {date_of_birth, phone_number} = req.body

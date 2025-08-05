@@ -23,6 +23,9 @@ model Patient {
   avatar                      String?          @default(value: "")
   country_code                String?          @default(value: "")
   phone_number                String?          @default(value: "")
+  height                      Int?             @default(value: 0)
+  weight                      Int?             @default(value: 0)
+
   apple_apn                   String?          @default(value: "")
   voip_token                  String?          @default(value: "")
 
@@ -131,6 +134,8 @@ model Transaction {
   transaction_type            String          @default(value: "")
 
   transaction_sub_type        String?         @default(value: "")
+
+  narration                   String          @default(value: "")
 
   notification                Notification[] 
 

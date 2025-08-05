@@ -142,11 +142,11 @@ export const patient_organization_profile_setup_validation = async (req: Request
 export const patient_profile_setup_validation = async (req: Request, res: Response, next: NextFunction)=>{
     try {
         const schema = Joi.object({
-            gender: Joi.string().trim().valid('male', 'female').required(),
+            genotype: Joi.string().trim().allow('').optional(),
             date_of_birth: Joi.string().trim().required(),
-            country_code: Joi.string().trim().required(),
-            phone_number: Joi.string().trim().required(),
-            referral_code: Joi.string().trim().allow('').optional(),
+            phone_number: Joi.string().trim().allow('').optional(),
+            country_code: Joi.string().trim().allow('').optional(),
+
         })
 
         const { error: validation_error } = schema.validate(req.body)
@@ -204,14 +204,20 @@ export const physician_profile_setup_validation = async (req: Request, res: Resp
 export const patient_data_edit_validation = async (req: Request, res: Response, next: NextFunction)=>{
     try {
         const schema = Joi.object({
-            gender: Joi.string().allow('').trim().valid("male", "female").optional(),
-            blood_group: Joi.string().trim().allow('').optional(),
-            genotype: Joi.string().trim().allow('').optional(),
-            avatar: Joi.string().trim().allow('').optional(),
+
+            first_name: Joi.string().trim().required(),
+            last_name: Joi.string().trim().required(),
             country: Joi.string().trim().allow('').optional(),
-            state: Joi.string().trim().allow('').optional(),
             country_code: Joi.string().trim().allow('').optional(),
             phone_number: Joi.string().trim().allow('').optional(),
+            gender: Joi.string().trim().allow('').valid('male', 'female').required(),
+            date_of_birth: Joi.string().trim().allow('').optional(),
+            blood_group: Joi.string().trim().allow('').optional(),
+            genotype: Joi.string().trim().allow('').optional(),
+            height: Joi.number().allow(0).optional(),
+            weight: Joi.number().allow(0).optional(),
+            avatar: Joi.string().trim().allow('').optional()
+
         })
 
         const { error: validation_error } = schema.validate(req.body)

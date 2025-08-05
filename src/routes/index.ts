@@ -11,7 +11,8 @@ import {decrypt_deposit_data, decrypt_withdrawal_data,
         paginated_filter_user_transaction, 
         patient_account, 
         physician_account, 
-        user_account_transaction } from '../controllers/user_account_controller'
+        user_account_transaction, 
+        user_wallet_information} from '../controllers/user_account_controller'
 
 import {all_case_note, create_case_note, edit_case_note} from '../controllers/case_note_controller'
 
@@ -68,6 +69,17 @@ const router = express.Router()
 
 router.route('/patient-signup').post(signup_validation, email_exist, patient_signup )
 
+router.route('/signup-update-patient-data').patch(patient_profile_setup_validation, verify_auth_id, patient_signup_profile_setup)
+
+router.route('/edit-patient-data').patch(patient_data_edit_validation, verify_auth_id, edit_patient_data)
+
+
+// Physician
+
+router.route('/physician-signup').post(signup_validation, email_exist, physician_signup )
+
+// General
+
 router.route('/user-login').post(login_validation, user_login )
 
 router.route('/generate-user-otp').post(generate_otp_validation, is_registered_user, generate_user_otp)
@@ -76,22 +88,24 @@ router.route('/verify-user-otp').patch(verify_otp_validation, verify_otp_status,
 
 router.route('/reset-user-password').patch(reset_password_validation, verify_auth_id, reset_patient_password)
 
-router.route('/signup-update-patient-data').patch(patient_profile_setup_validation, verify_auth_id, patient_signup_profile_setup)
+router.route('/user-information').get(verify_auth_id, fetch_user_data_from_key)
+
+router.route('/user-wallet-information/:page_number/:items_per_page').get(verify_auth_id, user_wallet_information)
+
+// --------------------------------------------------
+
 
 router.route('/signup-update-organiation-patient-data').patch(patient_organization_profile_setup_validation, verify_auth_id, patient_signup_profile_setup)
 
 router.route('/logged-in-patient').post(verify_auth_id, logged_in_patient)
 
-router.route('/edit-patient-data').patch(patient_data_edit_validation, verify_auth_id, edit_patient_data)
 
-router.route('/user-information').get(verify_auth_id, fetch_user_data_from_key)
 
 
 
 
 // Physician
 
-router.route('/physician-signup').post(signup_validation, email_exist, physician_signup )
 
 router.route('/physician-login').post(login_validation, physician_login )
 

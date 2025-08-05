@@ -55,6 +55,7 @@ export const decrypt_deposit_data = async(req: CustomRequest, res: Response, nex
                 amount: parsed_decrypted_data.amount/100,
                 transaction_type: parsed_decrypted_data.transaction_type.toLowerCase(),
                 transaction_sub_type: "account_deposit",
+                narration: "Wallet top-up via bank transfer",
                 patient_id: patient_id || null,
                 physician_id: physician_id || null,
                 account_id: user_account.account_id,
@@ -128,6 +129,7 @@ export const decrypt_withdrawal_data = async(req: CustomRequest, res: Response, 
                 amount: parsed_decrypted_data.amount/100,
                 transaction_type: parsed_decrypted_data.transaction_type.toLowerCase(),
                 transaction_sub_type: "account_withdrawal",
+                narration: "Funds withdrawal via transfer",
                 patient_id: patient_id,
                 physician_id: physician_id,
                 account_id: user_account.account_id,
@@ -168,6 +170,86 @@ export const decrypt_withdrawal_data = async(req: CustomRequest, res: Response, 
         return res.status(500).json({msg: 'Error during transaction initialization ', error: error });
     }
 }
+
+// patient wallet information
+
+// 1. total wallet balance 2. total amount credit 3. total amount debited 4. paginated transaction history 
+
+export const user_wallet_information = async(req: CustomRequest, res: Response, next: NextFunction)=>{
+
+    const physician_id = req.account_holder.user.physician_id || null
+
+    const patient_id = req.account_holder.user.patient_id || null
+
+    try {
+
+        const {page_number, items_per_page} = req.params
+
+        const items_in_page:number = Number(items_per_page) || 5
+
+        const  [wallet_balance, credit_transaction, debit_transaction, number_of_transaction, user_transaction] = await Promise.all([
+
+            prisma.account.findFirst({
+                where: {patient_id, physician_id},
+                select:{
+                    available_balance:true
+                }
+            }),
+
+            prisma.transaction.findMany({
+                where:{patient_id,physician_id, transaction_type: 'credit'},
+                select:{
+                    amount: true, transaction_type:true,
+                }
+            }),
+
+            prisma.transaction.findMany({
+                where:{patient_id,physician_id, transaction_type: 'debit'},
+                select:{
+                    amount: true, transaction_type:true,
+                }
+            }),
+
+            prisma.transaction.count({ 
+                where: {patient_id, physician_id}
+            }),
+
+            prisma.transaction.findMany({ 
+                where: { patient_id, physician_id  },
+
+                skip: (Math.abs(Number(page_number)) - 1) * items_in_page,
+                
+                take: items_in_page,
+                
+                orderBy: { created_at: 'desc' },
+
+            })
+        ]) 
+
+        const total_amount_credited:number = credit_transaction.reduce((sum, transaction) => sum + (transaction.amount || 0), 0);
+
+        const total_amount_debited:number = debit_transaction.reduce((sum, transaction) => sum + (transaction.amount || 0), 0);
+
+        const number_of_pages = (number_of_transaction <= items_in_page) ? 1 : Math.ceil(number_of_transaction/items_in_page)
+
+        return res.status(200).json({ 
+            msg:'Wallet Information', 
+            data: {
+                wallet_balance: wallet_balance?.available_balance, total_amount_credited, total_amount_debited,
+                total_number_of_transactions: number_of_transaction, total_number_of_pages: number_of_pages, transactions: user_transaction
+            } 
+        })
+            
+    } catch (err:any) {
+        console.log('Error getting user\'s transactions ',err)
+        return res.status(500).json({msgor: 'Error getting user\'s transactions ',err})
+    }
+}
+
+
+
+
+// --------------------------------------
 
 export const patient_account = async(req: CustomRequest, res: Response, next: NextFunction)=>{
     const user = req.account_holder.user

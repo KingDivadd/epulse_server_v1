@@ -74,3 +74,17 @@ export interface redisCallDataProps {
     life_time?: number;
 }
 
+export interface PatientProfileData {
+    first_name?:string;
+    last_name?:string;
+    country?:string;
+    coutnry_code?:string;
+    phone_number?:string;
+    gender?:string;
+    date_of_birth?: number;
+    blood_group?: string;    
+    genotype?:string;
+    height?:number;
+    weight?:number;
+    updated_at?: number;
+}
