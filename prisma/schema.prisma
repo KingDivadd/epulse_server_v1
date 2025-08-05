@@ -135,7 +135,7 @@ model Transaction {
 
   transaction_sub_type        String?         @default(value: "")
 
-  narration                   String?          @default(value: "")
+  narration                   String          @default(value: "")
 
   notification                Notification[] 
 
