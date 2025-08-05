@@ -86,7 +86,7 @@ export const decrypt_deposit_data = async(req: CustomRequest, res: Response, nex
 
     } catch (error: any) {
         console.log("error during transaction initialization", error);
-        return res.status(500).json({msg: 'Error during transaction initialization ', error: error });
+        return res.status(500).json({msg: 'Error during transaction initialization. ', error: error });
     }
 }
 
@@ -172,6 +172,7 @@ export const decrypt_withdrawal_data = async(req: CustomRequest, res: Response, 
 }
 
 // patient wallet information
+// patient wallet information
 
 // 1. total wallet balance 2. total amount credit 3. total amount debited 4. paginated transaction history 
 
@@ -241,7 +242,7 @@ export const user_wallet_information = async(req: CustomRequest, res: Response, 
         })
             
     } catch (err:any) {
-        console.log('Error getting user\'s transactions ',err)
+        console.log('Error getting user\'s transactions.',err)
         return res.status(500).json({msgor: 'Error getting user\'s transactions ',err})
     }
 }
