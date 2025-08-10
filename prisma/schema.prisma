@@ -87,6 +87,7 @@ model Physician {
   date_of_establishment       String?          @default(value: "")
   apple_apn                   String?          @default(value: "")
   voip_token                  String?          @default(value: "")
+  is_available                Boolean          @default(true)
 
   appointment                 Appointment[]
   case_note                   Case_note[]
