@@ -539,11 +539,12 @@ export const all_appointments = async(req: CustomRequest, res:Response, next: Ne
             
             prisma.appointment.findMany({
                 
+                where: { patient_id: user.patient_id, physician_id: user.physician_id, },
+                
                 skip: (Math.abs(Number(page_number)) - 1) * items_per_page,
 
                 take: items_per_page,
                 
-                where: { patient_id: user.patient_id, physician_id: user.physician_id, },
 
                 include: {patient: true, physician: true},
                 

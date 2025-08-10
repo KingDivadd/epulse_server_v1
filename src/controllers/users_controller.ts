@@ -49,7 +49,6 @@ export const all_physicians_2 = async(req: CustomRequest, res: Response )=>{
     }
 }
 
-
 export const physician_tracker = async () => {
     try {
         
@@ -121,6 +120,200 @@ export const physician_tracker = async () => {
     }
 }
 
+export const patient_dashboard = async (req:CustomRequest, res:Response) => {
+    
+    try {
+
+        const user = req.account_holder.user;
+
+        const {page_num, page_num_1, limit, limit_1} = req.params
+
+        const page_number = Number(page_num) || 1
+
+        const page_number_1 = Number(page_num_1) || 1
+
+        const items_per_page = Number(limit) || 8
+
+        const items_per_page_1 = Number(limit_1) || 8
+
+
+        const [wallet_balance, credit_transaction, debit_transaction, number_of_appointments, appointments, number_of_transaction, user_transaction ] = await Promise.all([
+
+            prisma.account.findFirst({
+
+                where: {patient_id: user.patient_id},
+
+                select:{ available_balance:true  }
+
+            }),
+
+            prisma.transaction.findMany({
+                where:{patient_id: user.patient_id, transaction_type: 'credit'},
+                select:{
+                    amount: true, transaction_type:true,
+                }
+            }),
+
+            prisma.transaction.findMany({
+                where:{patient_id: user.patient_id, transaction_type: 'debit'},
+                select:{
+                    amount: true, transaction_type:true,
+                }
+            }),
+
+            prisma.appointment.count({  where:{ patient_id: user.patient_id },  }),
+
+            prisma.appointment.findMany({
+
+                where: { patient_id: user.patient_id },
+
+                skip: (Math.abs(Number(page_number)) - 1) * items_per_page,
+
+                take: items_per_page,
+                
+                include: {patient: true, physician: true},
+
+                orderBy: { created_at: 'desc' }
+            }),
+
+            prisma.transaction.count({  where:{ patient_id: user.patient_id },  }),
+
+            prisma.transaction.findMany({
+
+                where: { patient_id: user.patient_id },
+
+                skip: (Math.abs(Number(page_number_1)) - 1) * items_per_page_1,
+
+                take: items_per_page_1,
+                
+                include: {patient: true, physician: true},
+
+                orderBy: { created_at: 'desc' }
+            }),
+
+
+        ])
+
+        
+        const total_amount_credited:number = credit_transaction.reduce((sum, transaction) => sum + (transaction.amount || 0), 0);
+
+        const total_amount_debited:number = debit_transaction.reduce((sum, transaction) => sum + (transaction.amount || 0), 0);
+
+        const number_of_pages = (number_of_appointments <= items_per_page) ? 1 : Math.ceil(number_of_appointments/items_per_page)
+
+        const number_of_pages_1 = (number_of_transaction <= items_per_page_1) ? 1 : Math.ceil(number_of_transaction/items_per_page_1)
+
+
+        return res.status(200).json({ 
+            msg:'Patient Dashboard Information', 
+            data: {
+                wallet_balance: wallet_balance?.available_balance, total_amount_credited, total_amount_debited,
+                total_number_of_appointments: number_of_appointments, total_number_of_pages: number_of_pages, appointments: appointments,
+                total_number_of_transactions: number_of_transaction, total_number_of_pages_1: number_of_pages_1, transactions: user_transaction
+            } 
+        })
+
+        
+    } catch (err) {
+
+        return res.status(500).json({msg:'Error fetching user dashboard ', error:err})
+
+    }
+}
+
+export const physician_dashboard = async (req:CustomRequest, res:Response) => {
+    
+    try {
+
+        const user = req.account_holder.user;
+
+        const {page_num, limit} = req.params
+
+        const page_number = Number(page_num) || 1
+
+        const items_per_page = Number(limit) || 8
+
+
+        const [taken_appointment, appointment_pending, wallet_balance, credit_transaction, debit_transaction, number_of_appointments, appointments, ] = await Promise.all([
+
+            prisma.appointment.count({
+                where:{
+                    status: 'completed',
+                    physician_id: user.physician_id
+                }
+            }),
+
+            prisma.appointment.count({
+                where:{
+                    status: 'pending',
+                    physician_id: user.physician_id
+                }
+            }),
+
+            prisma.account.findFirst({
+
+                where: {physician_id: user.physician_id},
+
+                select:{ available_balance:true  }
+
+            }),
+
+            prisma.transaction.findMany({
+                where:{physician_id: user.physician_id, transaction_type: 'credit'},
+                select:{
+                    amount: true, transaction_type:true,
+                }
+            }),
+
+            prisma.transaction.findMany({
+                where:{physician_id: user.physician_id, transaction_type: 'debit'},
+                select:{
+                    amount: true, transaction_type:true,
+                }
+            }),
+
+            prisma.appointment.count({  where:{ physician_id: user.physician_id },  }),
+
+            prisma.appointment.findMany({
+
+                where: { physician_id: user.physician_id },
+
+                skip: (Math.abs(Number(page_number)) - 1) * items_per_page,
+
+                take: items_per_page,
+                
+                include: {patient: true, physician: true},
+
+                orderBy: { created_at: 'desc' }
+            }),
+
+
+        ])
+
+        
+        const total_amount_credited:number = credit_transaction.reduce((sum, transaction) => sum + (transaction.amount || 0), 0);
+
+        const total_amount_debited:number = debit_transaction.reduce((sum, transaction) => sum + (transaction.amount || 0), 0);
+
+        const number_of_pages = (number_of_appointments <= items_per_page) ? 1 : Math.ceil(number_of_appointments/items_per_page)
+
+
+        return res.status(200).json({ 
+            msg:'Patient Dashboard Information', 
+            data: {
+                wallet_balance: wallet_balance?.available_balance, total_amount_credited, total_amount_debited,
+                appointments_taken: taken_appointment, pending_appointment: appointment_pending,
+                total_number_of_appointments: number_of_appointments, total_number_of_pages: number_of_pages, appointments: appointments,
+            } 
+        })
+
+        
+    } catch (err) {
+
+        return res.status(500).json({msg:'Error fetching user dashboard ', error:err})
+
+    }
+}
 
 // -----------------------------------
 export const all_physicians = async(req: CustomRequest, res: Response )=>{
