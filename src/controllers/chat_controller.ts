@@ -142,7 +142,7 @@ export const patient_physician_account_update = async (userAuth:any, data: any) 
 
         // if the physician is a specialist
 
-        if (physician.speciality  !== 'general_doctor'){
+        if (physician.specialty  !== 'general_doctor'){
             
             if (patient_account?.available_balance < Number(specialist_physician_chat_amount)){
                 return {statusCode: 401, message: 'Available balace is low, please top up your balance' }
@@ -199,7 +199,7 @@ export const patient_physician_account_update = async (userAuth:any, data: any) 
             return {statusCode: 200, message: 'Account updated successfully'}
 
         // if the physician is a general_doctor
-        }else if (physician.speciality === 'general_doctor'){
+        }else if (physician.specialty === 'general_doctor'){
             if (patient_account?.available_balance < Number(general_physician_chat_amount)){
                 return {statusCode: 401, message: 'Available balace is low, please top up your balance' }
             }
@@ -257,8 +257,8 @@ export const patient_physician_account_update = async (userAuth:any, data: any) 
         }
 
         // when the doctor is not registered as a specialist or a general doctor
-        else if (physician?.speciality === ''){   
-            return {statusCode: 401, message: `Only doctors who are sepecialist or general doctors can attend to patients speciality ${physician.speciality} `}
+        else if (physician?.specialty === ''){   
+            return {statusCode: 401, message: `Only doctors who are sepecialist or general doctors can attend to patients specialty ${physician.specialty} `}
         }
         
     } catch (err:any) {

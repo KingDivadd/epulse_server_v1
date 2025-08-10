@@ -9,6 +9,7 @@ import { patient_socket_messanger, physician_socket_messanger } from '../helpers
 import { function_web_push_notification } from './push_notification'
 import { call_appointment_consultaion_data_update, chat_appointment_consultaion_data_update, consultation_completion_data } from './chat_controller'
 import { delFromRedis, getFromRedis } from '../helpers/redis_initializer'
+import { booking_appointment_mail, patient_appointment_acceptance_mail, patient_out_of_credit_mail } from '../helpers/email_controller'
 const jwt = require('jsonwebtoken')
 
 export const book_appointment = async(req: CustomRequest, res: Response, next: NextFunction)=>{
@@ -35,7 +36,7 @@ export const book_appointment = async(req: CustomRequest, res: Response, next: N
             return res.status(402).json({msg: 'Insufficient balance, please fund your account before proceeding.'})
         }
 
-        const current_time = Date.now();
+        const current_time = Math.floor(Date.now() / 1000)
 
         if (current_time > req.body.time){
             return res.status(400).json({msg: 'You cannot book an appointment in the past.'})
@@ -52,10 +53,10 @@ export const book_appointment = async(req: CustomRequest, res: Response, next: N
             
             const difference_in_minutes = difference_in_milliseconds / 60000; 
 
-            if (difference_in_minutes < 30) {
-                console.log('New Appointment should be at 30 minutes or more after the previous appointment, past appointment')
-                return res.status(406).json({msg: 'New Appointment should be at 30 minutes or more after the previous appointment.' });
-            }
+            // if (difference_in_minutes < 30) {
+            //     console.log('New Appointment should be at 30 minutes or more after the previous appointment, past appointment')
+            //     return res.status(406).json({msg: 'New Appointment should be at 30 minutes or more after the previous appointment.' });
+            // }
         }
 
         const new_appointment = await prisma.appointment.create({
@@ -78,7 +79,7 @@ export const book_appointment = async(req: CustomRequest, res: Response, next: N
                 }
             })
 
-            send_mail_booking_appointment(new_appointment.physician, new_appointment.patient, new_appointment)
+            booking_appointment_mail(new_appointment.physician, new_appointment.patient, new_appointment)
             
             // create the various notifications
 
@@ -127,14 +128,20 @@ export const accept_appointment = async(req: CustomRequest, res:Response, next: 
             return res.status(401).json({msg: 'Only doctors booked for an appointment can accept an appointment!'})
         }
 
-        const current_time = Date.now();
+        const current_time = Math.floor(Date.now()/1000);
 
         const appointment_start_time = Number(appointment.time)
 
-        const appointment_end_time = appointment_start_time + (30 * 60 * 1000)
+        const appointment_end_time = appointment_start_time + (30 * 60)
 
         if (current_time > appointment_end_time ){
+
             return res.status(400).json({msg: 'Appointment is already past session window.'})
+        }
+
+        if (appointment.status === 'missed'){
+            console.log('Appointment already missed')
+            return res.status(409).json({msg: 'Appointment already missed.'})
         }
 
         if (appointment.status === 'cancelled'){
@@ -165,12 +172,13 @@ export const accept_appointment = async(req: CustomRequest, res:Response, next: 
                 title: 'Insufficient Amount', 
                 physician_id:appointment.physician_id, 
                 patient_id:appointment.patient_id, 
-                notification_to: 'patient'
+                notification_to: 'patient',
+                status: 'completed'
             }
 
-            send_mail_patient_out_of_credit(appointment.physician, appointment.patient, appointment)
+            patient_out_of_credit_mail(appointment.physician, appointment.patient, appointment)
 
-            return res.status(402).json({msg: 'Unfortunately, the patient do not have enough money to continue with the appointement and he has been notified. '})
+            return res.status(402).json({msg: 'Unfortunately, the patient do not have enough credit to continue with the appointement. '})
         }
 
         const accept_appointment = await prisma.appointment.update({
@@ -207,6 +215,7 @@ export const accept_appointment = async(req: CustomRequest, res:Response, next: 
                     data: {
                         amount: 100,
                         transaction_type: 'debit',
+                        narration: `Appointment booking for ${accept_appointment.physician?.specialty}`,
                         transaction_sub_type: 'appointment_booking',
                         patient_id: accept_appointment.patient_id,
                         physician_id: null,
@@ -247,7 +256,7 @@ export const accept_appointment = async(req: CustomRequest, res:Response, next: 
                 notification_to: 'patient'
             }
 
-            send_mail_accepted_appointment( accept_appointment.patient, accept_appointment.physician, accept_appointment)
+            patient_appointment_acceptance_mail( accept_appointment.patient, accept_appointment.physician, accept_appointment)
 
             return next()
         }
@@ -280,7 +289,7 @@ export const cancel_appointment = async(req: CustomRequest, res:Response, next: 
 
         const appointment_start_time = Number(appointment.time)
 
-        const appointment_end_time = appointment_start_time + (30 * 60 * 1000)
+        const appointment_end_time = appointment_start_time + (30 * 60)
 
         if (current_time >= appointment_start_time && current_time <= appointment_end_time ){
             return res.status(400).json({msg: 'Appointment is already in session and therefore cannot be cancelled.'})
@@ -511,9 +520,18 @@ export const all_appointments = async(req: CustomRequest, res:Response, next: Ne
 
         const user = req.account_holder.user;
 
-        const {page_number } = req.params;
+        const {page_number, limit } = req.params;
 
-        const [number_of_appointments, appointments] = await Promise.all([
+        const items_per_page = Number(limit)
+
+        const [appointment_status, number_of_appointments, appointments] = await Promise.all([
+
+            prisma.appointment.findMany({
+                where:{patient_id: user.patient_id, physician_id: user.physician_id},
+                select:{
+                    status:true
+                }
+            }),
 
             prisma.appointment.count({
                 where: { patient_id: user.patient_id, physician_id: user.physician_id }
@@ -521,9 +539,9 @@ export const all_appointments = async(req: CustomRequest, res:Response, next: Ne
             
             prisma.appointment.findMany({
                 
-                skip: (Math.abs(Number(page_number)) - 1) * 15,
+                skip: (Math.abs(Number(page_number)) - 1) * items_per_page,
 
-                take: 15,
+                take: items_per_page,
                 
                 where: { patient_id: user.patient_id, physician_id: user.physician_id, },
 
@@ -536,9 +554,25 @@ export const all_appointments = async(req: CustomRequest, res:Response, next: Ne
 
         ]);
 
-        const number_of_pages = (number_of_appointments <= 15) ? 1 : Math.ceil(number_of_appointments/15)
+        const pending_appointment = appointment_status.filter((item:any)=> item.status == 'pending').length
 
-        return res.status(200).json({message: "All Appointments", data: {total_number_of_appointments: number_of_appointments, total_number_of_pages: number_of_pages, appointments: appointments} })
+        const accepted_appointment = appointment_status.filter((item:any)=> item.status == 'accepted').length
+
+        const completed_appointment = appointment_status.filter((item:any)=> item.status == 'completed').length
+
+        const number_of_pages = (number_of_appointments <= items_per_page) ? 1 : Math.ceil(number_of_appointments/items_per_page)
+
+        return res.status(200).json({
+            message: "All Appointments", 
+            data: {
+                pending_appointment,
+                accepted_appointment,
+                completed_appointment,
+                total_number_of_appointments: number_of_appointments, 
+                total_number_of_pages: number_of_pages, 
+                appointments: appointments
+            } 
+        })
         
     } catch (err:any) {
         console.log('Error occured while fetching all appointments', err);
@@ -640,7 +674,7 @@ export const appointment_tracker = async()=>{
 
         const appointments = await prisma.appointment.findMany({  include:{patient: true, physician: true}   })
         
-        const current_time = Date.now();
+        const current_time = Math.floor(Date.now()/1000);
 
         const overdue_appointment: any[] = []
 
@@ -654,9 +688,9 @@ export const appointment_tracker = async()=>{
 
             const appointment_start_time = Number(appointment.time);
 
-            const appointment_end_time = appointment_start_time + (30 * 60 * 1000);
+            const appointment_end_time = appointment_start_time + (30 * 60);
 
-            const five_min_in_ms = 5 * 60 * 1000
+            const five_min_in_ms = 5 * 60
 
             if (appointment.status === 'accepted' && (appointment_start_time - current_time <= five_min_in_ms) && (appointment_start_time > current_time)){
 
@@ -1072,7 +1106,7 @@ export const all_user_rating = async(req: CustomRequest, res: Response, next: Ne
                 country: physician.country,
                 gender: physician.gender,
                 registered_as: physician.registered_as,
-                speciality: physician.speciality,
+                specialty: physician.specialty,
                 
             },
 

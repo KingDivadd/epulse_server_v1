@@ -120,17 +120,6 @@ export const user_login = async(req: Request, res: Response, next: NextFunction)
             console.log('Incorrect email address')
             return res.status(404).json({msg: 'Incorrect email address, check email and try again'})
         } 
-
-        if (!user?.is_verified) {
-
-            const otp = generate_otp()
-        
-            await redis_otp_store(req.body.email, otp, 'unverified', 60 * 60 * 1/6) // otp valid for 10min
-
-            send_mail_otp(req.body.email, otp)
-
-            return res.status(403).json({msg: 'Your account is not verified, please verify before proceeding.',  is_verified: user.is_verified })
-        }
         
         const encrypted_password = user.password
         const match_password: boolean = await bcrypt.compare(req.body.password, encrypted_password)
@@ -148,6 +137,17 @@ export const user_login = async(req: Request, res: Response, next: NextFunction)
         else if (req.body.device_type === 'mobile'){ 
             const new_auth_id = await redis_auth_store(user, 60 * 60 * 24 * 365); 
             if (new_auth_id){ res.setHeader('x-id-key', new_auth_id) } 
+        }
+
+        if (!user?.is_verified) {
+
+            const otp = generate_otp()
+        
+            await redis_otp_store(req.body.email, otp, 'unverified', 60 * 60 * 1/6) // otp valid for 10min
+
+            send_mail_otp(req.body.email, otp)
+
+            return res.status(403).json({msg: 'Your account is not verified, please verify before proceeding.',  is_verified: user.is_verified })
         }
 
         
@@ -482,7 +482,7 @@ export const patient_signup_profile_setup = async(req: CustomRequest, res: Respo
 }
 
 export const physician_signup_profile_setup = async(req: CustomRequest, res: Response, next: NextFunction)=>{
-    const {date_of_birth, phone_number, speciality} = req.body
+    const {date_of_birth, phone_number, specialty} = req.body
     try {
             req.body.date_of_birth = converted_datetime(date_of_birth)
             req.body.updated_at = converted_datetime(); 
@@ -493,7 +493,7 @@ export const physician_signup_profile_setup = async(req: CustomRequest, res: Res
 
             req.body.phone_number = String(number)
 
-            if (speciality.trim().toLowerCase() == 'general doctor') { req.body.speciality = 'general_doctor' }
+            if (specialty.trim().toLowerCase() == 'general doctor') { req.body.specialty = 'general_doctor' }
 
             const user:any = await prisma.physician.update({
                 where: {physician_id },

@@ -37,7 +37,7 @@ export interface UserInterface {
     phone_number?: string | null,
     referral_code?: string | null,
     registered_as?: string | null;
-    speciality?: string | null;
+    specialty?: string | null;
     address?: string | null;
     state?: string | null;
     country?: string | null;

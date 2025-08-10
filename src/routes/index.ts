@@ -78,6 +78,10 @@ router.route('/edit-patient-data').patch(patient_data_edit_validation, verify_au
 
 router.route('/physician-signup').post(signup_validation, email_exist, physician_signup )
 
+router.route('/all-physicians/:page_number/:limit').get(verify_auth_id, all_physicians_2)
+
+router.route('/edit-physician-data').patch(physician_data_edit_validation, verify_auth_id, edit_physician_data)
+
 // General
 
 router.route('/user-login').post(login_validation, user_login )
@@ -91,6 +95,8 @@ router.route('/reset-user-password').patch(reset_password_validation, verify_aut
 router.route('/user-information').get(verify_auth_id, fetch_user_data_from_key)
 
 router.route('/user-wallet-information/:page_number/:items_per_page').get(verify_auth_id, user_wallet_information)
+
+
 
 // --------------------------------------------------
 
@@ -121,15 +127,13 @@ router.route('/signup-update-physician-data').patch(physician_profile_setup_vali
 
 router.route('/logged-in-physician').post(verify_auth_id, logged_in_physician)
 
-router.route('/edit-physician-data').patch(physician_data_edit_validation, verify_auth_id, edit_physician_data)
-
-router.route('/all-physicians/:page_number/:limit').get(verify_auth_id, all_physicians_2)
-
 router.route('/all-physicians/:page_number').get(verify_auth_id, all_physicians)
 
 router.route('/filter-physician/:page_number').post(filter_physician_validation, verify_auth_id, filter_physicians)
 
 router.route('/general-doctors/:page_number').get(verify_auth_id, all_general_doctors)
+
+router.route('/')
 
 
 // Patient and Physician Account and Transaction
@@ -177,7 +181,7 @@ router.route('/complete-appointment').patch(verify_auth_id, complete_appointment
 
 router.route('/filter-appointment/:status/:page_number').get(verify_auth_id, filter_appointment)
 
-router.route('/get-appointment/:page_number').get(verify_auth_id, all_appointments)
+router.route('/get-appointment/:page_number/:limit').get(verify_auth_id, all_appointments)
 
 router.route('/delete-appointment/:appointment_id').delete(verify_auth_id, delete_appointment, clear_chat)
 

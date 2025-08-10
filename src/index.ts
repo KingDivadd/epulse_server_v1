@@ -22,6 +22,7 @@ import { appointment_tracker } from './controllers/appointment';
 import { update_notification } from './controllers/notification_controller';
 import { apn_call_notification } from './controllers/push_notification';
 import converted_datetime, { readable_date } from './helpers/date_time_elements';
+import { physician_tracker } from './controllers/users_controller';
 
 dotenv.config();
 
@@ -476,13 +477,13 @@ try {
                             clearInterval(socket.billing_interval);
                             return
                         }else{
-                            if (physician?.speciality !== 'general_doctor'){
+                            if (physician?.specialty !== 'general_doctor'){
 
                                 per_minute_charge = specialist_video_call_charge_per_minute
 
                                 earned_amount = per_minute_charge * (specialist_physician_chat_percentage / 100);   
                                 
-                            }else if (physician?.speciality == 'general_doctor'){
+                            }else if (physician?.specialty == 'general_doctor'){
                                 
                                 per_minute_charge = general_doctor_video_call_charge_per_minute
 
@@ -669,9 +670,11 @@ app.use(not_found);
 appointment_tracker()
 setInterval(()=>{
     
-    console.log('appointment tracking begins');
+    console.log('tracking begins');
     
-    // appointment_tracker()
+    appointment_tracker()
+
+    physician_tracker()
 
 }, 30000 )
 

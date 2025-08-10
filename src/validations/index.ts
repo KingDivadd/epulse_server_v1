@@ -143,7 +143,7 @@ export const patient_profile_setup_validation = async (req: Request, res: Respon
     try {
         const schema = Joi.object({
             genotype: Joi.string().trim().allow('').optional(),
-            date_of_birth: Joi.string().trim().required(),
+            date_of_birth: Joi.number().allow(0).optional(),
             phone_number: Joi.string().trim().allow('').optional(),
             country_code: Joi.string().trim().allow('').optional(),
 
@@ -167,10 +167,10 @@ export const physician_profile_setup_validation = async (req: Request, res: Resp
     try {
         const schema = Joi.object({
             registered_as: Joi.string().trim().required(),
-            speciality: Joi.string().trim().required(),
+            specialty: Joi.string().trim().required(),
             
             gender: Joi.string().allow('').trim().valid('male', 'female').required(),
-            date_of_birth: Joi.string().trim().required(),
+            date_of_birth: Joi.number().allow(0).optional(),
             country_code: Joi.string().trim().required(),
             phone_number: Joi.string().trim().required(),
             
@@ -211,7 +211,7 @@ export const patient_data_edit_validation = async (req: Request, res: Response, 
             country_code: Joi.string().trim().allow('').optional(),
             phone_number: Joi.string().trim().allow('').optional(),
             gender: Joi.string().trim().allow('').valid('male', 'female').required(),
-            date_of_birth: Joi.string().trim().allow('').optional(),
+            date_of_birth: Joi.number().allow(0).optional(),
             blood_group: Joi.string().trim().allow('').optional(),
             genotype: Joi.string().trim().allow('').optional(),
             height: Joi.number().allow(0).optional(),
@@ -237,23 +237,27 @@ export const patient_data_edit_validation = async (req: Request, res: Response, 
 export const physician_data_edit_validation = async (req: Request, res: Response, next: NextFunction)=>{
     try {
         const schema = Joi.object({
-            registered_as: Joi.string().trim().required(),
-                speciality: Joi.string().trim().required(),
-                gender: Joi.string().allow('').trim().valid("male", "female").required(),
-                date_of_birth: Joi.string().trim().allow().optional(),
-                country_code: Joi.string().trim().allow('').optional(),
-                phone_number: Joi.string().trim().allow('').optional(),
-                bio: Joi.string().trim().allow('').optional(),
-                address: Joi.string().trim().required(),
-                state: Joi.string().trim().allow('').optional(),
-                country: Joi.string().trim().allow('').optional(),
-                languages_spoken: Joi.array().items(Joi.string()).optional(),
-                signature: Joi.string().trim().allow('').optional(),
-                
-                avatar: Joi.string().trim().allow('').optional(),
-                medical_license: Joi.string().trim().allow('').optional(),
-                professional_credentials: Joi.string().trim().allow('').optional(),
-                verification_of_employment: Joi.string().trim().allow('').optional()
+            avatar: Joi.string().trim().allow('').optional(),
+            first_name: Joi.string().trim().allow('').optional(),
+            last_name: Joi.string().trim().allow('').optional(),
+            country_code: Joi.string().trim().allow('').optional(),
+            phone_number: Joi.string().trim().allow('').optional(),
+
+            date_of_birth: Joi.number().allow(0).optional(),
+            gender: Joi.string().allow('').trim().valid("male", "female").optional(),
+            country: Joi.string().trim().allow('').optional(),
+            state: Joi.string().trim().allow('').optional(),
+            address: Joi.string().trim().allow('').optional(),
+            languages_spoken: Joi.array().items(Joi.string()).optional(),
+            bio: Joi.string().trim().allow('').optional(),
+
+            registered_as: Joi.string().trim().allow('').optional(),
+            specialty: Joi.string().trim().allow('').optional(),
+            medical_license: Joi.string().trim().allow('').optional(),
+
+            signature: Joi.string().trim().allow('').optional(),
+            professional_credentials: Joi.string().trim().allow('').optional(),
+            verification_of_employment: Joi.string().trim().allow('').optional()
         })
 
         const { error: validation_error } = schema.validate(req.body)
@@ -273,7 +277,7 @@ export const physician_data_edit_validation = async (req: Request, res: Response
 export const filter_physician_validation = async (req: Request, res: Response, next: NextFunction)=>{
     try {
         const schema = Joi.object({
-            speciality: Joi.string().trim().allow('').optional(),
+            specialty: Joi.string().trim().allow('').optional(),
         })
 
         const { error: validation_error } = schema.validate(req.body)

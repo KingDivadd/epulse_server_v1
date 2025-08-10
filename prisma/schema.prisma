@@ -69,7 +69,7 @@ model Physician {
   gender                      String?          @default(value: "")
   date_of_birth               Decimal?         @default(value: 0)
   registered_as               String?          @default(value: "")
-  speciality                  String?          @default(value: "")
+  specialty                   String?          @default(value: "")
   country_code                String?          @default(value: "")
   phone_number                String?          @default(value: "")
   address                     String?          @default(value: "")
