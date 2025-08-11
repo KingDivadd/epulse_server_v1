@@ -875,6 +875,7 @@ export const appointment_tracker = async()=>{
                                     amount: deduction,
                                     transaction_type: 'debit',
                                     transaction_sub_type: 'patient_unavailabe_for_appointment',
+                                    narration: 'Unavailable for consultation',
                                     patient_id: appointment.patient_id,
                                     physician_id: null,
                                     account_id: patient_account?.account_id,
