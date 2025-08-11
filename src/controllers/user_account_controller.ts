@@ -25,10 +25,10 @@ export const decrypt_deposit_data = async(req: CustomRequest, res: Response, nex
         let user_account;
         const decrypted_data:any = await handle_decrypt(encrypted_data);
 
-        console.log('encrypted data ', encrypted_data, '\ndecrypted data ', decrypted_data)
+        console.log('encrypted data ', encrypted_data, '\n\ndecrypted data =========', decrypted_data)
+
         const parsed_decrypted_data:any = JSON.parse(decrypted_data)
         console.log('parsed data ', parsed_decrypted_data);
-        
 
         // first get user
         let patient_id = parsed_decrypted_data?.patient_id ;

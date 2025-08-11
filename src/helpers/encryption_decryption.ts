@@ -31,9 +31,9 @@ export const handle_decrypt = async (data: string) => {
 
     } catch (error) {
         console.error("Decryption failed:", error);
+        return {msg: 'error occured ', err:error}
     }
 };
-
 
 export const handle_encrypt = async (data: string) => {
 
