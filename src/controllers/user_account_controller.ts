@@ -21,19 +21,45 @@ export const encrypt_deposit_data = async(req: Request, res: Response, next: Nex
 
 export const decrypt_deposit_data = async(req: CustomRequest, res: Response, next: NextFunction) => {
     const { encrypted_data } = req.body;
-    try {   
+    try {  
+        let user_account;
         const decrypted_data:any = await handle_decrypt(encrypted_data);
         const parsed_decrypted_data:any = JSON.parse(decrypted_data)
 
         // first get user
-        let patient_id = parsed_decrypted_data?.patient_id || null;
-        let physician_id = parsed_decrypted_data?.physician_id || null;
+        let patient_id = parsed_decrypted_data?.patient_id ;
+        let physician_id = parsed_decrypted_data?.physician_id ;
 
-        const user_account = await prisma.account.findFirst({
-            where: { patient_id: patient_id, physician_id: physician_id, }
-        })
-                
-        if (user_account == null || !user_account ) { return res.status(404).json({msg: 'User not found'}) }
+        const [patient_account, physician_account] = await Promise.all([
+            
+            prisma.account.findFirst({where: { patient_id }}),
+            prisma.account.findFirst({where: {physician_id }})
+
+        ])
+
+        user_account = patient_account || physician_account
+
+        if (!user_account) {
+            if (patient_id) {
+                user_account = await prisma.account.create({
+                    data:{
+                        available_balance: 0,
+                        patient_id,
+                        created_at: converted_datetime(),
+                        updated_at: converted_datetime(),
+                    }
+                })
+            }else{
+                user_account = await prisma.account.create({
+                    data:{
+                        available_balance: 0,
+                        physician_id,
+                        created_at: converted_datetime(),
+                        updated_at: converted_datetime(),
+                    }
+                })
+            }
+        }
         
         if (user_account) {
             if (parsed_decrypted_data.transaction_type.toLowerCase() === 'credit'){
@@ -93,20 +119,53 @@ export const decrypt_deposit_data = async(req: CustomRequest, res: Response, nex
 export const decrypt_withdrawal_data = async(req: CustomRequest, res: Response, next: NextFunction) => {
 
     const { encrypted_data } = req.body;
+
     try {
+
+        let user_account;
 
         const decrypted_data:any = await handle_decrypt(encrypted_data);
 
         const parsed_decrypted_data:any = JSON.parse(decrypted_data)
 
-        // first get user
-        let patient_id = parsed_decrypted_data?.patient_id || null
-        let physician_id = parsed_decrypted_data?.physician_id || null
+        let patient_id = parsed_decrypted_data?.patient_id ;
+        let physician_id = parsed_decrypted_data?.physician_id ;
 
-        const user_account = await prisma.account.findFirst({ where: { patient_id: patient_id, physician_id: physician_id, } })
-        
-        if (user_account == null) { return res.status(404).json({msg: 'User not found'}) }
-        
+        const [patient_account, physician_account] = await Promise.all([
+            
+            prisma.account.findFirst({where: {patient_id: patient_id }}),
+
+            prisma.account.findFirst({where: {physician_id:physician_id }})
+
+        ])
+
+        console.log(parsed_decrypted_data, '\n', physician_id, '\npatient account ', patient_account, '\nPysician account : ', physician_account)
+
+        user_account = patient_account || physician_account
+
+        if (!user_account) {
+            if (patient_id) {
+                user_account = await prisma.account.create({
+                    data:{
+                        available_balance: 0,
+                        patient_id,
+                        created_at: converted_datetime(),
+                        updated_at: converted_datetime(),
+                    }
+                })
+            }else{
+                user_account = await prisma.account.create({
+                    data:{
+                        available_balance: 0,
+                        physician_id,
+                        created_at: converted_datetime(),
+                        updated_at: converted_datetime(),
+                    }
+                })
+            }
+        }
+
+                
         if (user_account) {
             if ( parsed_decrypted_data.transaction_type.toLowerCase() === 'debit' ){
                 if ( (Number(user_account.available_balance) -  Number( parsed_decrypted_data.amount / 100 )) < 0 ){
@@ -178,9 +237,9 @@ export const decrypt_withdrawal_data = async(req: CustomRequest, res: Response, 
 
 export const user_wallet_information = async(req: CustomRequest, res: Response, next: NextFunction)=>{
 
-    const physician_id = req.account_holder.user.physician_id || null
+    const physician_id = req.account_holder.user.physician_id || null 
 
-    const patient_id = req.account_holder.user.patient_id || null
+    const patient_id = req.account_holder.user.patient_id || null 
 
     try {
 

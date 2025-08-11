@@ -4,6 +4,29 @@ import { CustomRequest } from '../helpers/interface'
 import converted_datetime from '../helpers/date_time_elements'
 import { admin_verified_physician_mail } from '../helpers/email_controller'
 
+export const verify_physician_id = async (req:CustomRequest, res: Response) => {
+    try {
+
+        const {id} = req.params
+
+        const physician = await prisma.physician.findUnique({
+            where:{
+                physician_id: id
+            }
+        })
+
+        if (!physician) {
+            return res.status(404).json({msg: 'Physician not found'})
+        }
+
+        return res.status(200).json({msg: 'Physician registered', physician})
+
+        
+    } catch (err) {
+        return res.status(500).json({msg: "Error verifying physician id", error:err})
+    }
+}
+
 export const all_physicians_2 = async(req: CustomRequest, res: Response )=>{
     try {
 

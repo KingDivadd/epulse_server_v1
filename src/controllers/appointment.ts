@@ -9,7 +9,7 @@ import { patient_socket_messanger, physician_socket_messanger } from '../helpers
 import { function_web_push_notification } from './push_notification'
 import { call_appointment_consultaion_data_update, chat_appointment_consultaion_data_update, consultation_completion_data } from './chat_controller'
 import { delFromRedis, getFromRedis } from '../helpers/redis_initializer'
-import { booking_appointment_mail, patient_appointment_acceptance_mail, patient_out_of_credit_mail } from '../helpers/email_controller'
+import { booking_appointment_mail, patient_appointment_acceptance_mail, patient_appointment_in_session_mail, patient_out_of_credit_mail, patient_upcoming_appointment_mail, physician_appointment_in_session_mail, physician_upcoming_appointment_mail } from '../helpers/email_controller'
 const jwt = require('jsonwebtoken')
 
 export const book_appointment = async(req: CustomRequest, res: Response, next: NextFunction)=>{
@@ -726,7 +726,7 @@ export const appointment_tracker = async()=>{
             
             const consultation_data_promises = overdue_appointment.map(async(appointment:any) => {
 
-                console.log('begin processing appintment data');
+                console.log('begin processing overdue appintment data');
 
                 if (appointment.status === 'accepted') {
                     
@@ -833,9 +833,9 @@ export const appointment_tracker = async()=>{
 
                         // sending email notification 
                         
-                        send_mail_appointment_in_session_to_physician(appointment.physician, appointment.patient, appointment)
+                        physician_appointment_in_session_mail(appointment.physician, appointment.patient, appointment)
 
-                        send_mail_appointment_in_session_to_patient(appointment.physician, appointment.patient, appointment)
+                        patient_appointment_in_session_mail(appointment.physician, appointment.patient, appointment)
 
                     }
                 }
@@ -950,8 +950,8 @@ export const appointment_tracker = async()=>{
                 );
 
                 // Sending email notifications
-                send_mail_upcoming_appointment_to_physician(appointment.physician, appointment.patient, appointment);
-                send_mail_upcoming_appointment_to_patient(appointment.physician, appointment.patient, appointment);
+                physician_upcoming_appointment_mail(appointment.physician, appointment.patient, appointment);
+                patient_upcoming_appointment_mail(appointment.physician, appointment.patient, appointment);
             });
 
             await Promise.all(notification_promises);

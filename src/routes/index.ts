@@ -31,7 +31,7 @@ import {accept_appointment, add_user_rating, all_appointments,
         selected_user_rating,
         user_ratings} from '../controllers/appointment'
 
-import {all_general_doctors, all_physicians, all_physicians_2, filter_physicians, patient_dashboard, physician_dashboard} from '../controllers/users_controller'
+import {all_general_doctors, all_physicians, all_physicians_2, filter_physicians, patient_dashboard, physician_dashboard, verify_physician_id} from '../controllers/users_controller'
 
 import {patient_signup, physician_signup, 
         user_login, physician_login, 
@@ -85,6 +85,8 @@ router.route('/all-physicians/:page_number/:limit').get(verify_auth_id, all_phys
 router.route('/edit-physician-data').patch(physician_data_edit_validation, verify_auth_id, edit_physician_data)
 
 router.route('/physician-dashboard/:page_num/:limit').get(verify_auth_id, physician_dashboard )
+
+router.route('/verify-physician-id/:id').get(verify_auth_id, verify_physician_id )
 
 // General
 
