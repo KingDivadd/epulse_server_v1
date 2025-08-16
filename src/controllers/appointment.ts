@@ -12,6 +12,36 @@ import { delFromRedis, getFromRedis } from '../helpers/redis_initializer'
 import { booking_appointment_mail, patient_appointment_acceptance_mail, patient_appointment_in_session_mail, patient_out_of_credit_mail, patient_upcoming_appointment_mail, physician_appointment_in_session_mail, physician_upcoming_appointment_mail } from '../helpers/email_controller'
 const jwt = require('jsonwebtoken')
 
+export const appointment_available_for_consultation = async (req:CustomRequest, res:Response) => {
+    try {
+        const user = req.account_holder.user
+
+        const appointments = await prisma.appointment.findMany({
+
+            where:{ allow_consultation: true, patient_id:user.patient_id, physician_id:user.physician_id,  },
+
+            include:{
+                patient: true, physician:true
+            },
+
+            orderBy:{ updated_at: 'desc'  }
+        })
+
+        // Filter to keep only the latest appointment per physician
+        const latest_appointments = appointments.reduce((new_array:any[], current_iteration) => {
+            // If physician_id is not yet in new_array, add the current appointment
+            if (!new_array.some((appt:any) => appt.physician_id === current_iteration.physician_id)) {
+                new_array.push(current_iteration);
+            }
+            return new_array;
+        }, []);
+
+        return res.status(200).json({msg: 'Appointment available for consultation', appointments:latest_appointments})
+    } catch (err){
+        return res.status(500).json({msg: "Error fetching all appointments available for chat"})
+    }
+}
+
 export const book_appointment = async(req: CustomRequest, res: Response, next: NextFunction)=>{
     const { url, ...data_without_url } = req.body;
     try {
@@ -38,6 +68,8 @@ export const book_appointment = async(req: CustomRequest, res: Response, next: N
 
         const current_time = Math.floor(Date.now() / 1000)
 
+        console.log(current_time, 'passed time', req.body.time)
+
         if (current_time > req.body.time){
             return res.status(400).json({msg: 'You cannot book an appointment in the past.'})
         }        
@@ -50,6 +82,8 @@ export const book_appointment = async(req: CustomRequest, res: Response, next: N
         // Ensure appointment are within a minimum of 30min interval
         if (existing_appointment != null) {
             const difference_in_milliseconds = Math.abs(req.body.time - Number(existing_appointment.time));
+
+            console.log('diff in ms ', difference_in_milliseconds)
             
             const difference_in_minutes = difference_in_milliseconds / 60000; 
 
@@ -693,7 +727,7 @@ export const appointment_tracker = async()=>{
 
             const five_min_in_ms = 5 * 60
 
-            if (appointment.status === 'accepted' && (appointment_start_time - current_time <= five_min_in_ms) && (appointment_start_time > current_time)){
+            if (appointment.status === 'accepted' && (appointment_start_time - current_time <= five_min_in_ms) && (appointment_start_time > current_time && appointment.reminded_for_appointment)){
 
                 upcoming_appointment.push(appointment)
             }
@@ -782,12 +816,15 @@ export const appointment_tracker = async()=>{
 
         if (in_session_appointment.length){
 
+            console.log('begin processing in session appointment')
+
             const update_promises = in_session_appointment.map((appointment:any) => {
                     
                     return prisma.appointment.update({
                         where: { appointment_id: appointment.appointment_id },
                         data: {
                             in_session: true,
+                            allow_consultation: true,
                             updated_at: converted_datetime() }
                     });
             });
@@ -833,9 +870,9 @@ export const appointment_tracker = async()=>{
 
                         // sending email notification 
                         
-                        physician_appointment_in_session_mail(appointment.physician, appointment.patient, appointment)
+                        physician_appointment_in_session_mail(appointment.patient, appointment.physician, appointment)
 
-                        patient_appointment_in_session_mail(appointment.physician, appointment.patient, appointment)
+                        patient_appointment_in_session_mail(appointment.patient, appointment.physician, appointment)
 
                     }
                 }
@@ -925,6 +962,24 @@ export const appointment_tracker = async()=>{
         // Batch request to remind patient and doctors of upcoming appointment
 
         if (upcoming_appointment.length) {
+            console.log('begins processing upcoming appointment')
+            
+            const update_promises = upcoming_appointment.map(async(appointment:any) => {
+
+                if (appointment.reminded_for_appointment) {
+                    
+                    return prisma.appointment.update({
+                        where: { appointment_id: appointment.appointment_id },
+                        data: {
+                            reminded_for_appointment: true, 
+                            updated_at: converted_datetime() }
+                    });
+                }
+                
+            });
+    
+            await Promise.all(update_promises);
+            
             const notification_promises = upcoming_appointment.map(async (appointment: any) => {
 
                 // Send push notifications and email to both users
@@ -951,8 +1006,8 @@ export const appointment_tracker = async()=>{
                 );
 
                 // Sending email notifications
-                physician_upcoming_appointment_mail(appointment.physician, appointment.patient, appointment);
-                patient_upcoming_appointment_mail(appointment.physician, appointment.patient, appointment);
+                physician_upcoming_appointment_mail( appointment.patient, appointment.physician,appointment);
+                patient_upcoming_appointment_mail(appointment.patient, appointment.physician, appointment);
             });
 
             await Promise.all(notification_promises);

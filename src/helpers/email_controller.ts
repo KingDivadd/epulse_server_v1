@@ -295,7 +295,7 @@ export const booking_appointment_mail = (physician:any, patient:any, appointment
     const template = `
         <div class="email-container">
             <h1 class="email-heading">Hello Dr. ${physician.first_name}!</h1>
-            <p class="email-paragraph">${patient.last_name} ${patient.first_name} has booked a/an ${appointment.appointment_type.replace(/_/, ' ')} appointment with you scheduled for ${date_time.date}, ${date_time.time} </p>
+            <p class="email-paragraph">${patient.last_name} ${patient.first_name} has booked a ${appointment.appointment_type.replace(/_/, ' ')} appointment with you scheduled for ${date_time.date}, ${date_time.time} </p>
             <p class="email-paragraph">Best Regards,</p>
             <p class="email-paragraph">The ePulse Team.</p>
         </div>
@@ -382,7 +382,7 @@ export const patient_out_of_credit_mail = (physician:any, patient:any, appointme
     const template = `
         <div class="email-container">
             <h1 class="email-heading">Hello ${patient.first_name}!</h1>
-            <p class="email-paragraph">Your ${appointment.appointment_type.replace(/_/, " ")} appointment with Dr. ${physician.last_name} ${physician.first_name} " was discontinued due to insufficient credit.</p>
+            <p class="email-paragraph">Your ${appointment.appointment_type.replace(/_/, " ")} appointment with Dr. ${physician.last_name} ${physician.first_name} was discontinued due to insufficient credit.</p>
             <p class="email-paragraph">Please fund your account to continue the session.</p>
             <p class="email-paragraph">Best Regards,</p>
             <p class="email-paragraph">The ePulse Team.</p>
@@ -471,7 +471,7 @@ export const patient_appointment_acceptance_mail = (patient:any, physician:any, 
     const template = `
         <div class="email-container">
             <h1 class="email-heading">Hello ${patient.first_name}!</h1>
-            <p class="email-paragraph">Good news, your ${appointment.appointment_type.replace(/_/, ' ')} appointment with Dr. ${physician.last_name} ${physician.first_name}" scheduled to hold on ${date_time.date} ${date_time.time} has been accepted.</p>
+            <p class="email-paragraph">Good news, your ${appointment.appointment_type.replace(/_/, ' ')} appointment with Dr. ${physician.last_name} ${physician.first_name} scheduled to hold on ${date_time.date} ${date_time.time} has been accepted.</p>
             <p class="email-paragraph">Please endeviour to be available for the slated time.</p>
             <p class="email-paragraph">Best Regards,</p>
             <p class="email-paragraph">The ePulse Team.</p>
@@ -560,7 +560,7 @@ export const patient_appointment_declined_mail = (patient:any, physician:any, ap
     const template = `
         <div class="email-container">
             <h1 class="email-heading">Hello ${patient.first_name}!</h1>
-            <p class="email-paragraph">Unfortunately, your ${appointment.appointment_type.replace(/_/, ' ')} appointment with Dr. ${physician.last_name} ${physician.first_name}" scheduled to hold on ${date_time.date} ${date_time.time} has been declined due to his unavailability.</p>
+            <p class="email-paragraph">Unfortunately, your ${appointment.appointment_type.replace(/_/, ' ')} appointment with Dr. ${physician.last_name} ${physician.first_name} scheduled to hold on ${date_time.date} ${date_time.time} has been declined due to his unavailability.</p>
 
             <p class="email-paragraph">We apologize for any inconvenience this may cause. Please feel free to reschedule your appointment or contact our support team for further assistance.</p>
             <p class="email-paragraph">Best Regards,</p>
@@ -652,7 +652,7 @@ export const patient_appointment_cancelled_mail = (patient:any, physician:any, a
 
         <div class="email-container">
             <h1 class="email-heading">Hello ${patient.first_name}!</h1>
-            <p class="email-paragraph">Unfortunately, your ${appointment.appointment_type.replace(/_/, ' ')} appointment with Dr. ${physician.last_name} ${physician.first_name}" scheduled to hold on ${date_time.date} ${date_time.time} has been cancelled due to his unavailability.</p>
+            <p class="email-paragraph">Unfortunately, your ${appointment.appointment_type.replace(/_/, ' ')} appointment with Dr. ${physician.last_name} ${physician.first_name} scheduled to hold on ${date_time.date} ${date_time.time} has been cancelled due to his unavailability.</p>
 
             <p class="email-paragraph">We apologize for any inconvenience this may cause. Please feel free to reschedule your appointment or contact our support team for further assistance.</p>
             <p class="email-paragraph">Best Regards,</p>
@@ -744,7 +744,7 @@ export const patient_appointment_in_session_mail = (patient:any, physician:any, 
 
         <div class="email-container">
             <h1 class="email-heading">Hello ${patient.first_name}!</h1>
-            <p class="email-paragraph">Kindly note that your ${appointment.appointment_type.replace(/_/, ' ')} appointment with Dr. ${physician.last_name} ${physician.first_name}" scheduled to hold on ${date_time.date} ${date_time.time} is now in session.</p>
+            <p class="email-paragraph">Kindly note that your ${appointment.appointment_type.replace(/_/, ' ')} appointment with Dr. ${physician.last_name} ${physician.first_name} scheduled to hold on ${date_time.date} ${date_time.time} is now in session.</p>
 
             <p class="email-paragraph">Please join to begin the consultation.</p>
 
@@ -837,7 +837,7 @@ export const physician_appointment_in_session_mail = (patient:any, physician:any
 
         <div class="email-container">
             <h1 class="email-heading">Hello Dr. ${physician.first_name}!</h1>
-            <p class="email-paragraph">Kindly note that your ${appointment.appointment_type.replace(/_/, ' ')} appointment with ${patient.last_name} ${patient.first_name}" scheduled to hold on ${date_time.date} ${date_time.time} is now in session.</p>
+            <p class="email-paragraph">Kindly note that your ${appointment.appointment_type.replace(/_/, ' ')} appointment with ${patient.last_name} ${patient.first_name} scheduled to hold on ${date_time.date} ${date_time.time} is now in session.</p>
 
             <p class="email-paragraph">Please join to begin the consultation.</p>
 
@@ -930,7 +930,7 @@ export const patient_upcoming_appointment_mail = (patient:any, physician:any, ap
 
         <div class="email-container">
             <h1 class="email-heading">Hello ${patient.first_name}!</h1>
-            <p class="email-paragraph">This is a reminder that your ${appointment.appointment_type.replace(/_/, ' ')} appointment with Dr. ${physician.last_name} ${physician.first_name}" scheduled to hold on ${date_time.date} ${date_time.time} is starting soon.</p>
+            <p class="email-paragraph">This is a reminder that your ${appointment.appointment_type.replace(/_/, ' ')} appointment with Dr. ${physician.last_name} ${physician.first_name} scheduled to hold on ${date_time.date} ${date_time.time} is starting soon.</p>
 
             <p class="email-paragraph">Please be ready to join the session.</p>
 
@@ -1023,7 +1023,7 @@ export const physician_upcoming_appointment_mail = (patient:any, physician:any, 
 
         <div class="email-container">
             <h1 class="email-heading">Hello Dr. ${physician.first_name}!</h1>
-            <p class="email-paragraph">This is a reminder that your ${appointment.appointment_type.replace(/_/, ' ')} appointment with ${patient.last_name} ${patient.first_name}" scheduled to hold on ${date_time.date} ${date_time.time} is starting soon.</p>
+            <p class="email-paragraph">This is a reminder that your ${appointment.appointment_type.replace(/_/, ' ')} appointment with ${patient.last_name} ${patient.first_name} scheduled to hold on ${date_time.date} ${date_time.time} is starting soon.</p>
 
             <p class="email-paragraph">Please be ready to join the session.</p>
 

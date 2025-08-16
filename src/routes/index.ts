@@ -16,13 +16,14 @@ import {decrypt_deposit_data, decrypt_withdrawal_data,
 
 import {all_case_note, create_case_note, edit_case_note} from '../controllers/case_note_controller'
 
-import {clear_chat, get_appointment_chats} from '../controllers/chat_controller'
+import {clear_chat, get_appointment_chats, } from '../controllers/chat_controller'
 
 import {save_subscription, push_notification, save_apn_token} from '../controllers/push_notification'
 
 import {accept_appointment, add_user_rating, all_appointments, 
         all_patient_appointments, 
         all_user_rating, 
+        appointment_available_for_consultation, 
         appointment_tracker_all_appointment, 
         book_appointment, cancel_appointment, complete_appointment, 
         consultation, 
@@ -177,6 +178,8 @@ router.route('/paginated-filter-physician-transaction/:transaction_type/:page_nu
 
 // Appointment
 
+router.route('/appointment-available-for-consultation').get(verify_auth_id, appointment_available_for_consultation)
+
 router.route('/create-appointment').post(verify_auth_id, book_appointment_validation, book_appointment, push_notification )
 
 router.route('/accept-appointment').patch(verify_auth_id, accept_appointment_validation, accept_appointment, push_notification)
@@ -215,6 +218,7 @@ router.route('/selected-patient-rating/:user_id').get(verify_auth_id, selected_u
 router.route('/selected-physician-rating/:user_id').get(verify_auth_id, selected_user_rating)
 
 router.route('/all-user-rating').get(verify_auth_id, all_user_rating)
+
 // Chat
 
 router.route('/get-chats/:patient_id/:physician_id').get(verify_auth_id, get_appointment_chats)

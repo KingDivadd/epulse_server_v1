@@ -179,7 +179,11 @@ model Appointment {
   complain                    String
   status                      String          @default(value: "pending")
   in_session                  Boolean?        @default(value: false)
+  allow_consultation          Boolean?        @default(value: false)
+  last_message                String?         @default(value: "")
   available_during_session    Boolean?        @default(value: false)
+  reminded_for_appointment    Boolean?        @default(value: false)
+  last_message_time           Decimal         @default(value: 0)
   
   meeting_id                  String          @default(value: "")
 
@@ -189,8 +193,8 @@ model Appointment {
   urgent_need                 String?         @default(value: "")
   current_location            String?         @default(value: "")
 
-  consultation_duration       Int?         @default(value: 0)
-  total_consultation_amount   Float?         @default(value: 0)
+  consultation_duration       Int?            @default(value: 0)
+  total_consultation_amount   Float?          @default(value: 0)
 
   notification                Notification[]
   case_note                   Case_note[]

@@ -48,93 +48,95 @@ if (vapid_public_key && vapid_private_key) {
 try {
     io.on("connection", (socket:any) => {
         
-        socket.on('read-notification', async(data:any, callback:any) =>{
-            try {
-                const validation = await notification_validation(data)
+        // read notification
+        // socket.on('read-notification', async(data:any, callback:any) =>{
+        //     try {
+        //         const validation = await notification_validation(data)
 
-                if(validation?.statusCode == 422){
-                    console.log(validation);
-                    callback({status: false,statusCode: 422,message: validation.message,error: validation.message});
-                    return;
-                }
+        //         if(validation?.statusCode == 422){
+        //             console.log(validation);
+        //             callback({status: false,statusCode: 422,message: validation.message,error: validation.message});
+        //             return;
+        //         }
 
-                const notification_data = await update_notification(data)
+        //         const notification_data = await update_notification(data)
 
-                if (notification_data?.statusCode != 200){
-                    console.log(notification_data);
-                    callback({statusCode: notification_data.statusCode, message: notification_data.message})
-                }
+        //         if (notification_data?.statusCode != 200){
+        //             console.log(notification_data);
+        //             callback({statusCode: notification_data.statusCode, message: notification_data.message})
+        //         }
 
-                callback({
-                    statusCode: notification_data.statusCode,
-                    message: notification_data.message,
-                    notificationData: notification_data.notificationData,
-                    is_read: notification_data.is_read
-                });
-
-
-            } catch (err:any) {
-                callback({
-                    statusCode: 500,
-                    message: "Internal Server Error in the catch block",
-                });
-            }
-        })
-
-        socket.on('typing', async(data: any, callback:any) =>{
-            try {
-                const validation = await chat_validation(data)
-
-                if(validation?.statusCode == 422){
-                    console.log(validation);
-                    callback({status: false,statusCode: 422,message: validation.message,error: validation.message});
-                    return;
-                }
-
-                const user_id = data.is_physician ? data.physician_id : (data.is_patient ? data.patient_id : null);
-
-                const userAuth = await socket_verify_auth_id(data.token);
-
-                if (userAuth.statusCode === 401) {
-                    socket.emit(`${user_id}`, {
-                        statusCode: 401,
-                        message: userAuth.message,
-                        idempotency_key: data.idempotency_key,
-                    });
-                    return;
-                }else if (userAuth.statusCode === 404) {
-                    socket.emit(`${user_id}`, {
-                        statusCode: 401,
-                        message: "Auth session id expired. Please login and get new x-id-key.",
-                        idempotency_key: data.idempotency_key
-                    });
-                    return;
-                }else if (userAuth.statusCode === 500){
-                    socket.emit(`${user_id}`, {
-                        statusCode: 500,
-                        message: "Internal Server Error",
-                        idempotency_key: data.idempotency_key
-                    });
-                    return;
-                }
-
-                // sender receives a callback when in the chat page
-                socket.broadcast.emit(`${data.patient_id}-${data.physician_id}`, {
-                    statusCode: 200,
-                    message: "Typing... ",
-                    is_typing: true,
-                    userData: userAuth.data,
-                });
+        //         callback({
+        //             statusCode: notification_data.statusCode,
+        //             message: notification_data.message,
+        //             notificationData: notification_data.notificationData,
+        //             is_read: notification_data.is_read
+        //         });
 
 
-            } catch (er:any) {
-                const user_id = data.is_physician ? data.physician_id : (data.is_patient ? data.patient_id : null);
-                socket.broadcast.emit(`${user_id}`, {
-                    statusCode: 500,
-                    message: "Internal Server Error in the catch block",
-                });
-            }
-        })
+        //     } catch (err:any) {
+        //         callback({
+        //             statusCode: 500,
+        //             message: "Internal Server Error in the catch block",
+        //         });
+        //     }
+        // })
+
+        // Typing
+        // socket.on('typing', async(data: any, callback:any) =>{
+        //     try {
+        //         const validation = await chat_validation(data)
+
+        //         if(validation?.statusCode == 422){
+        //             console.log(validation);
+        //             callback({status: false,statusCode: 422,message: validation.message,error: validation.message});
+        //             return;
+        //         }
+
+        //         const user_id = data.is_physician ? data.physician_id : (data.is_patient ? data.patient_id : null);
+
+        //         const userAuth = await socket_verify_auth_id(data.token);
+
+        //         if (userAuth.statusCode === 401) {
+        //             socket.emit(`${user_id}`, {
+        //                 statusCode: 401,
+        //                 message: userAuth.message,
+        //                 idempotency_key: data.idempotency_key,
+        //             });
+        //             return;
+        //         }else if (userAuth.statusCode === 404) {
+        //             socket.emit(`${user_id}`, {
+        //                 statusCode: 401,
+        //                 message: "Auth session id expired. Please login and get new x-id-key.",
+        //                 idempotency_key: data.idempotency_key
+        //             });
+        //             return;
+        //         }else if (userAuth.statusCode === 500){
+        //             socket.emit(`${user_id}`, {
+        //                 statusCode: 500,
+        //                 message: "Internal Server Error",
+        //                 idempotency_key: data.idempotency_key
+        //             });
+        //             return;
+        //         }
+
+        //         // sender receives a callback when in the chat page
+        //         socket.broadcast.emit(`${data.patient_id}-${data.physician_id}`, {
+        //             statusCode: 200,
+        //             message: "Typing... ",
+        //             is_typing: true,
+        //             userData: userAuth.data,
+        //         });
+
+
+        //     } catch (er:any) {
+        //         const user_id = data.is_physician ? data.physician_id : (data.is_patient ? data.patient_id : null);
+        //         socket.broadcast.emit(`${user_id}`, {
+        //             statusCode: 500,
+        //             message: "Internal Server Error in the catch block",
+        //         });
+        //     }
+        // })
 
         // for chat
         socket.on('send-chat-text', async (data: any, callback: any) => {         
@@ -143,7 +145,11 @@ try {
                 const validation = await chat_validation(data)
                 if(validation?.statusCode == 422){
                     console.log(validation);
-                    callback({status: false,statusCode: 422,message: validation.message,error: validation.message});
+                    callback({
+                        status: false, 
+                        statusCode: 422, message: validation.message,
+                        error: validation.message
+                    });
                     return;
                 }
 
@@ -151,59 +157,46 @@ try {
 
                 const userAuth = await socket_verify_auth_id(data.token);
 
-                if (userAuth.statusCode === 401) {
+                if (userAuth.statusCode !== 200) {
 
-                    socket.emit(`${user_id}`, {
-                        statusCode: 401,
+                    callback({
+                        statusCode: userAuth.statusCode,
                         message: userAuth.message,
                         idempotency_key: data.idempotency_key,
                     });
                     return;
                 }
-                else if (userAuth.statusCode === 404) {
-                    socket.emit(`${user_id}`, {
-                        statusCode: 401,
-                        message: "Auth session id expired. Please login and get new x-id-key.",
-                        idempotency_key: data.idempotency_key
-                    });
-                    return;
-                }else if (userAuth.statusCode === 500){
-                    callback( {
-                        statusCode: 500,
-                        message: userAuth.message,
-                        idempotency_key: data.idempotency_key
-                    });
-                    return;
-                }
 
                 const appointmentValidation = await validate_appointment(data)
-                if (appointmentValidation.statusCode === 400 || appointmentValidation.statusCode === 404 || appointmentValidation.statusCode === 500 ){
+                if (appointmentValidation.statusCode !== 200 ){
 
-                    socket.emit(`${user_id}`, {
+                    callback({
                         statusCode: appointmentValidation.statusCode,
                         message: appointmentValidation.message,
                         idempotency_key: data.idempotency_key
                     });
                     return;
                 }
-
                 
                 const patient_physician_payment = await patient_physician_account_update(userAuth.data, data)
                 if (patient_physician_payment?.statusCode === 404 || 
                     patient_physician_payment?.statusCode === 401 || 
                     patient_physician_payment?.statusCode === 500){
 
-                    socket.emit(`${user_id}`, {
+                    callback({
                         statusCode: patient_physician_payment.statusCode,
                         message: patient_physician_payment.message,
                         idempotency_key: data.idempotency_key
                     });
                     return;
                 }
+
+                data.patient_id = appointmentValidation.patient_id
+                data.physician_id = appointmentValidation.physician_id
                 
                 const saved_chat:any = await create_chat(data, userAuth.data);
                 if (saved_chat.statusCode === 500 ){
-                    socket.emit(`${user_id}`, {
+                    callback({
                         statusCode: 500,
                         message: "Error sending messages",
                         idempotency_key: data.idempotency_key
@@ -212,15 +205,15 @@ try {
                 }
                 
                 // sender receives a callback
-                socket.emit(`${user_id}`, {
+                callback({
                     statusCode: 200,
                     message: "Message sent succesfully. ",
                     idempotency_key: data.idempotency_key,
                     chat: saved_chat,
                 });
-                
+
                 // Get the receiver ID
-                const receiver_id = data.is_physician ? data.patient_id : (data.is_patient ? data.physician_id : null);
+                const receiver_id = data.is_patient ? appointmentValidation.physician_id : appointmentValidation.patient_id;
 
                 // Broadcast to the receiver only
                 socket.broadcast.emit(`${receiver_id}`, {
@@ -231,13 +224,6 @@ try {
                     note: 'received'
                 });
                 
-                // Broadcast to patient-physician (sender and receinver)
-                socket.broadcast.emit(`${data.patient_id}-${data.physician_id}`, {
-                    statusCode: 200,
-                    chat: saved_chat,
-                    is_typing: false,
-                    idempotency_key: data.idempotency_key
-                });
                                     
             } catch (error) {    
                 console.log(error)

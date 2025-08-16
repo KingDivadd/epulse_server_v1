@@ -12,6 +12,7 @@ import { patient_socket_messanger } from "../helpers/socket_events"
 const jwt = require('jsonwebtoken')
 
 
+
 export const clear_chat = async(req: Request, res: Response, next: NextFunction)=>{
     try {
         const {appointment_id} = req.params
@@ -27,6 +28,7 @@ export const clear_chat = async(req: Request, res: Response, next: NextFunction)
 export const get_appointment_chats = async(req: CustomRequest, res: Response, next: NextFunction)=>{
     try {
         const {patient_id, physician_id} = req.params
+        
         const patient = req.account_holder.user.patient_id
         const physician = req.account_holder.user.physician_id
 
@@ -46,16 +48,18 @@ export const get_appointment_chats = async(req: CustomRequest, res: Response, ne
 
 export const validate_appointment = async(data:any)=>{
     const {appointment_id, caller_id, receiver_id} = data
+
     try {
         const appointment = await prisma.appointment.findUnique({ where: {appointment_id}, include: {patient: true, physician: true} })
 
         if (!appointment){ return {statusCode: 404, message: 'Appointment not found'} }
         
-        const current_time = Number(Date.now()) 
+        const current_time = Math.floor(Date.now()/1000); 
 
         const appointment_start_time = Number(appointment.time)
 
-        const appointment_end_time = appointment_start_time + (30 * 60 * 1000);
+        const appointment_end_time = appointment_start_time + (30 * 60);
+
 
         if (appointment?.status == 'pending'){
             return {statusCode: 400, message: `Dr ${appointment?.physician?.first_name} ${appointment?.physician?.last_name} hasn't accepted your appointment. ` }
@@ -68,14 +72,18 @@ export const validate_appointment = async(data:any)=>{
             })
         }
 
-        if (appointment?.status == 'completed' || appointment?.status == 'cancelled' || appointment_end_time < current_time) {
-            await prisma.appointment.update({
-                where: {appointment_id},
-                data: {in_session: false}
-            })
+        // if (appointment?.status == 'completed' || appointment?.status == 'cancelled' || appointment_end_time < current_time) {
+        //     await prisma.appointment.update({
+        //         where: {appointment_id},
+        //         data: {in_session: false}
+        //     })
+
+        //     console.log('appointment start time .... ',appointment_start_time,'\nappointment end_time ....', appointment_end_time, '\ncurrent-time ... ',current_time)
             
-            return {statusCode: 400, message: `Appointment with Dr ${appointment?.physician?.first_name} ${appointment?.physician?.last_name} already expired, to continue chatting or video calling, please book a new appointment. `}
-        }
+        //     return {
+        //         statusCode: 400, 
+        //         message: `Appointment with Dr ${appointment?.physician?.first_name} ${appointment?.physician?.last_name} already expired, to continue chatting or video calling, please book a new appointment. `}
+        // }
         
         if (!appointment.available_during_session && (appointment.patient_id == caller_id || appointment.patient_id == data.patient_id)){
             await prisma.appointment.update({
@@ -84,7 +92,11 @@ export const validate_appointment = async(data:any)=>{
             })
         }
 
-        return {statusCode: 200, message: 'Appointment still in session'}
+        return {
+            statusCode: 200, 
+            patient_id: appointment.patient_id, physician_id: appointment.physician_id, 
+            message: 'Appointment still in session'
+        }
 
     } catch (err) {
         console.log(err);

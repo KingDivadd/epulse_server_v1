@@ -739,8 +739,8 @@ export const chat_validation = async ( data:any) => {
         const schema = Joi.object({
             idempotency_key: Joi.string().trim().required(),
             appointment_id: Joi.string().trim().required(),
-            physician_id: Joi.string().trim().required(),
-            patient_id: Joi.string().trim().required(),
+            physician_id: Joi.string().trim().optional().allow(''),
+            patient_id: Joi.string().trim().optional().allow(''),
             is_physician: Joi.boolean().required(),
             is_patient: Joi.boolean().required(),
             text: Joi.string().allow('').optional(),
