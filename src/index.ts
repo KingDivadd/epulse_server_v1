@@ -178,6 +178,9 @@ try {
                     return;
                 }
                 
+                data.patient_id = appointmentValidation.patient_id
+                data.physician_id = appointmentValidation.physician_id
+                
                 const patient_physician_payment = await patient_physician_account_update(userAuth.data, data)
                 if (patient_physician_payment?.statusCode === 404 || 
                     patient_physician_payment?.statusCode === 401 || 
@@ -191,8 +194,6 @@ try {
                     return;
                 }
 
-                data.patient_id = appointmentValidation.patient_id
-                data.physician_id = appointmentValidation.physician_id
                 
                 const saved_chat:any = await create_chat(data, userAuth.data);
                 if (saved_chat.statusCode === 500 ){

@@ -274,6 +274,7 @@ export const patient_physician_account_update = async (userAuth:any, data: any) 
         }
         
     } catch (err:any) {
+        console.log('error during patient account deduction ...... ', err)
         return {statusCode: 500, message: `Error during patient account deduction error : ${err}`}
     }
 };
