@@ -16,7 +16,7 @@ import not_found from  './middlewares/not_found'
 import check_network_availability from './middlewares/network_availability'
 import { chat_validation, notification_validation, video_validation } from './validations';
 import { check_user_availability, socket_verify_auth_id } from './helpers/auth_helper';
-import { call_appointment_consultaion_data_update, caller_availability, create_chat, patient_physician_account_update, receiver_availability, validate_appointment } from './controllers/chat_controller';
+import { appointment_info, call_appointment_consultaion_data_update, caller_availability, create_chat, patient_physician_account_update, receiver_availability, validate_appointment } from './controllers/chat_controller';
 import prisma from './helpers/prisma_initializer';
 import { appointment_tracker } from './controllers/appointment';
 import { update_notification } from './controllers/notification_controller';
@@ -83,60 +83,66 @@ try {
         // })
 
         // Typing
-        // socket.on('typing', async(data: any, callback:any) =>{
-        //     try {
-        //         const validation = await chat_validation(data)
+        socket.on('typing', async(data: any, callback:any) =>{
+            try {
+                const validation = await chat_validation(data)
 
-        //         if(validation?.statusCode == 422){
-        //             console.log(validation);
-        //             callback({status: false,statusCode: 422,message: validation.message,error: validation.message});
-        //             return;
-        //         }
+                if(validation?.statusCode == 422){
+                    console.log(validation);
+                    callback({status: false,statusCode: 422,message: validation.message,error: validation.message});
+                    return;
+                }
 
-        //         const user_id = data.is_physician ? data.physician_id : (data.is_patient ? data.patient_id : null);
+                const user_id = data.is_physician ? data.physician_id : (data.is_patient ? data.patient_id : null);
 
-        //         const userAuth = await socket_verify_auth_id(data.token);
+                const userAuth = await socket_verify_auth_id(data.token);
 
-        //         if (userAuth.statusCode === 401) {
-        //             socket.emit(`${user_id}`, {
-        //                 statusCode: 401,
-        //                 message: userAuth.message,
-        //                 idempotency_key: data.idempotency_key,
-        //             });
-        //             return;
-        //         }else if (userAuth.statusCode === 404) {
-        //             socket.emit(`${user_id}`, {
-        //                 statusCode: 401,
-        //                 message: "Auth session id expired. Please login and get new x-id-key.",
-        //                 idempotency_key: data.idempotency_key
-        //             });
-        //             return;
-        //         }else if (userAuth.statusCode === 500){
-        //             socket.emit(`${user_id}`, {
-        //                 statusCode: 500,
-        //                 message: "Internal Server Error",
-        //                 idempotency_key: data.idempotency_key
-        //             });
-        //             return;
-        //         }
+                if (userAuth.statusCode !== 200) {
 
-        //         // sender receives a callback when in the chat page
-        //         socket.broadcast.emit(`${data.patient_id}-${data.physician_id}`, {
-        //             statusCode: 200,
-        //             message: "Typing... ",
-        //             is_typing: true,
-        //             userData: userAuth.data,
-        //         });
+                    callback({
+                        statusCode: userAuth.statusCode,
+                        message: userAuth.message,
+                        idempotency_key: data.idempotency_key,
+                    });
+                    return;
+                }
+
+                const validate_appointment = await appointment_info(data)
+                if (validate_appointment.statusCode !== 200 ){
+
+                    callback({
+                        statusCode: validate_appointment.statusCode,
+                        message: validate_appointment.message,
+                    });
+                    return;
+                }
+
+                const receiver_id = data.is_patient ? validate_appointment.physician_id : validate_appointment.patient_id;
+
+                callback({
+                    statusCode: 200,
+                    message: "Typing... ",
+                    is_typing: true,
+                    // userData: userAuth.data,
+                })
+
+                // sender receives a callback when in the chat page
+                socket.broadcast.emit(`typing-${receiver_id}`, {
+                    statusCode: 200,
+                    message: "Typing... ",
+                    is_typing: true,
+                    // userData: userAuth.data,
+                });
 
 
-        //     } catch (er:any) {
-        //         const user_id = data.is_physician ? data.physician_id : (data.is_patient ? data.patient_id : null);
-        //         socket.broadcast.emit(`${user_id}`, {
-        //             statusCode: 500,
-        //             message: "Internal Server Error in the catch block",
-        //         });
-        //     }
-        // })
+            } catch (er:any) {
+                const user_id = data.is_physician ? data.physician_id : (data.is_patient ? data.patient_id : null);
+                socket.broadcast.emit(`${user_id}`, {
+                    statusCode: 500,
+                    message: "Internal Server Error in the catch block",
+                });
+            }
+        })
 
         // for chat
         socket.on('send-chat-text', async (data: any, callback: any) => {         

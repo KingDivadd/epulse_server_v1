@@ -46,6 +46,32 @@ export const get_appointment_chats = async(req: CustomRequest, res: Response, ne
     }
 }
 
+export const appointment_info = async(data:any)=>{
+    const {appointment_id, caller_id, receiver_id} = data
+
+    try {
+        const appointment = await prisma.appointment.findUnique({ 
+            where: {appointment_id}, 
+            include: {
+                patient: {select:{patient_id:true}}, 
+                physician: {select:{physician_id:true}}
+            } 
+        })
+
+        if (!appointment){ return {statusCode: 404, message: 'Appointment not found'} }
+
+        return {
+            statusCode: 200, 
+            patient_id: appointment.patient_id, physician_id: appointment.physician_id, 
+            message: 'Appointment found successfully',
+        }
+
+    } catch (err) {
+        console.log(err);
+        return { statusCode: 500, message: 'Internal Server Error' }; 
+    }
+}
+
 export const validate_appointment = async(data:any)=>{
     const {appointment_id, caller_id, receiver_id} = data
 
