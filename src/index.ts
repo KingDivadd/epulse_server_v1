@@ -117,12 +117,15 @@ try {
                     return;
                 }
 
+
                 const receiver_id = data.is_patient ? validate_appointment.physician_id : validate_appointment.patient_id;
+
 
                 callback({
                     statusCode: 200,
                     message: "Typing... ",
                     is_typing: true,
+                    
                     // userData: userAuth.data,
                 })
 
@@ -131,6 +134,9 @@ try {
                     statusCode: 200,
                     message: "Typing... ",
                     is_typing: true,
+                    receiver_id: receiver_id,
+                    patient_id: validate_appointment.patient_id,
+                    physician_id: validate_appointment.physician_id,
                     // userData: userAuth.data,
                 });
 
