@@ -71,7 +71,7 @@ export const decrypt_deposit_data = async(req: CustomRequest, res: Response, nex
                 });
                 
             }else{
-                return res.status(400).json({msg: 'Invalid deposit trnsaction type.'})
+                return res.status(400).json({msg: 'Invalid deposit transaction type.'})
             }
             
         }
@@ -107,7 +107,9 @@ export const decrypt_deposit_data = async(req: CustomRequest, res: Response, nex
             }
         })
 
-        if (notification){ patient_socket_messanger('notification', new_transaction, notification) }
+        if (notification){ 
+            patient_socket_messanger('notification', new_transaction, notification) 
+        }
 
         return res.status(200).json({ msg: 'Account updated successfully',  });
 
