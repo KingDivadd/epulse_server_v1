@@ -49,38 +49,38 @@ try {
     io.on("connection", (socket:any) => {
         
         // read notification
-        // socket.on('read-notification', async(data:any, callback:any) =>{
-        //     try {
-        //         const validation = await notification_validation(data)
+        socket.on('read-notification', async(data:any, callback:any) =>{
+            try {
+                const validation = await notification_validation(data)
 
-        //         if(validation?.statusCode == 422){
-        //             console.log(validation);
-        //             callback({status: false,statusCode: 422,message: validation.message,error: validation.message});
-        //             return;
-        //         }
+                if(validation?.statusCode == 422){
+                    console.log(validation);
+                    callback({status: false,statusCode: 422,message: validation.message,error: validation.message});
+                    return;
+                }
 
-        //         const notification_data = await update_notification(data)
+                const notification_data = await update_notification(data)
 
-        //         if (notification_data?.statusCode != 200){
-        //             console.log(notification_data);
-        //             callback({statusCode: notification_data.statusCode, message: notification_data.message})
-        //         }
+                if (notification_data?.statusCode != 200){
+                    console.log(notification_data);
+                    callback({statusCode: notification_data.statusCode, message: notification_data.message})
+                }
 
-        //         callback({
-        //             statusCode: notification_data.statusCode,
-        //             message: notification_data.message,
-        //             notificationData: notification_data.notificationData,
-        //             is_read: notification_data.is_read
-        //         });
+                callback({
+                    statusCode: notification_data.statusCode,
+                    message: notification_data.message,
+                    notificationData: notification_data.notificationData,
+                    is_read: notification_data.is_read
+                });
 
 
-        //     } catch (err:any) {
-        //         callback({
-        //             statusCode: 500,
-        //             message: "Internal Server Error in the catch block",
-        //         });
-        //     }
-        // })
+            } catch (err:any) {
+                callback({
+                    statusCode: 500,
+                    message: "Internal Server Error in the catch block",
+                });
+            }
+        })
 
         // Typing
         socket.on('typing', async(data: any, callback:any) =>{
@@ -155,6 +155,7 @@ try {
             try {
 
                 const validation = await chat_validation(data)
+
                 if(validation?.statusCode == 422){
                     console.log(validation);
                     callback({
@@ -180,6 +181,7 @@ try {
                 }
 
                 const appointmentValidation = await validate_appointment(data)
+                
                 if (appointmentValidation.statusCode !== 200 ){
 
                     callback({

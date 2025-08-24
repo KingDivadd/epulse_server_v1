@@ -22,7 +22,16 @@ export const all_notifications = async (req: CustomRequest, res: Response, next:
 
                 notification_for_physician: physician_id ? true : undefined,
             },
-            include: {patient: true, physician: true, appointment: true, case_note: true, transaction: true,},
+            include: {patient: true, physician: true, appointment: {
+                select:{
+                    patient:{select:{
+                        first_name:true, last_name:true, patient_id:true
+                    }},
+                    physician:{select:{
+                        first_name:true, last_name:true, physician_id:true
+                    }},
+                }
+            }, case_note: true, transaction: true,},
 
             
             orderBy: { created_at: 'desc' },

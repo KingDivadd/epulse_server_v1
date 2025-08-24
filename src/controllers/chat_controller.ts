@@ -98,18 +98,16 @@ export const validate_appointment = async(data:any)=>{
             })
         }
 
-        // if (appointment?.status == 'completed' || appointment?.status == 'cancelled' || appointment_end_time < current_time) {
-        //     await prisma.appointment.update({
-        //         where: {appointment_id},
-        //         data: {in_session: false}
-        //     })
-
-        //     console.log('appointment start time .... ',appointment_start_time,'\nappointment end_time ....', appointment_end_time, '\ncurrent-time ... ',current_time)
+        if (appointment?.status == 'completed' || appointment?.status == 'cancelled' || appointment_end_time < current_time) {
+            await prisma.appointment.update({
+                where: {appointment_id},
+                data: {in_session: false}
+            })
             
-        //     return {
-        //         statusCode: 400, 
-        //         message: `Appointment with Dr ${appointment?.physician?.first_name} ${appointment?.physician?.last_name} already expired, to continue chatting or video calling, please book a new appointment. `}
-        // }
+            return {
+                statusCode: 400, 
+                message: `Appointment with Dr ${appointment?.physician?.first_name} ${appointment?.physician?.last_name} already expired, to continue chatting or video calling, please book a new appointment. `}
+        }
         
         if (!appointment.available_during_session && (appointment.patient_id == caller_id || appointment.patient_id == data.patient_id)){
             await prisma.appointment.update({
